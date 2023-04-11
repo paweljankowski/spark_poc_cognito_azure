@@ -1,16 +1,28 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { CognitoConstruct } from './cognito.construct'
+import { CfnOutput, CfnParameter } from 'aws-cdk-lib'
 
 export class CognitoAzureStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    const callbackUrl = new CfnParameter(this, 'callbackUrl', {
+      type: 'String',
+    })
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'CognitoAzureQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    const azureMetadataUrl = new CfnParameter(this, 'azureMetadataUrl', {
+      type: 'String',
+    })
+
+
+    const cognito = new CognitoConstruct(this, {
+      callbackUrls: [callbackUrl.valueAsString],
+      azureSamlUrl: azureMetadataUrl.valueAsString,
+    })
+
+    new CfnOutput(this, 'cognitoPoolId', {
+      value: cognito.pool.userPoolId,
+    })
   }
 }
